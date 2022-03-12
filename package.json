@@ -14,11 +14,14 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "docker-deploy": "docker rm -f react-ascii-3d-shooter-ctr ; docker build -t regismdantas/react-ascii-3d-shooter . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-3d-shooter-ctr regismdantas/react-ascii-3d-shooter"
+    "docker-deploy": "docker rm -f react-ascii-3d-shooter-ctr ; docker build -t regismdantas/react-ascii-3d-shooter . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-3d-shooter-ctr regismdantas/react-ascii-3d-shooter",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "eslintConfig": {
     "extends": [
@@ -37,5 +40,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "prettier": "2.5.1"
   }
 }

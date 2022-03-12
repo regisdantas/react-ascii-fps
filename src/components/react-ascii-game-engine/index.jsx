@@ -6,13 +6,13 @@ const defaultConsts = {
 
   defaultRenderOptions: {
     ceilingChar: " ",
-    wallChar: [ "█", "▓", "▒", "░", " "],
+    wallChar: ["█", "▓", "▒", "░", " "],
     floorChar: "-",
   },
 
   defaultMapOptions: {
     wallChar: "#",
-    floorChar: ".",
+    floorChar: " ",
   },
 };
 export class ASCIIGameEngine {
@@ -39,13 +39,16 @@ export class ASCIIGameEngine {
     }
 
     document.addEventListener("keydown", gameOptions.onKeyPress);
+    document.addEventListener("keyup", gameOptions.onKeyUp);
   }
 
   MovePlayer(player, dFrontBack, dSide, dAngle) {
     let newA = player.a + dAngle * 0.1;
-    let newX = player.x + dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a);
-    let newY = player.y + dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a);
-    return {...player, x: newX, y: newY, a: newA};
+    let newX =
+      player.x + dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a);
+    let newY =
+      player.y + dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a);
+    return { ...player, x: newX, y: newY, a: newA };
   }
 
   Draw(x, y, char) {
@@ -95,8 +98,15 @@ export class ASCIIGameEngine {
         if (y < ceilingSize) {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
-          let wallShade = Math.floor((distanceToWall/map.width) * defaultConsts.defaultRenderOptions.wallChar.length-1);
-          this.Draw(x, y, defaultConsts.defaultRenderOptions.wallChar[wallShade]);
+          let wallShade = Math.floor(
+            (distanceToWall / map.width) *
+              (defaultConsts.defaultRenderOptions.wallChar.length - 1)
+          );
+          this.Draw(
+            x,
+            y,
+            defaultConsts.defaultRenderOptions.wallChar[wallShade]
+          );
         } else {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.floorChar);
         }
@@ -111,11 +121,7 @@ export class ASCIIGameEngine {
       <div className="game-screen">
         <pre>
           {this.screenBuffer.map((line, idx) => {
-            return (
-              <span>
-                {`${line.join("")}\n`}
-              </span>
-            );
+            return <span>{`${line.join("")}\n`}</span>;
           })}
         </pre>
       </div>
