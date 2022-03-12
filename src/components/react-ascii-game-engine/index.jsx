@@ -1,6 +1,8 @@
 import "./index.css";
 
 const defaultConsts = {
+  defaultPlayerSpeed: 0.2,
+  defaultPlayerSpin: 0.02,
   defaultFieldOfView: Math.PI / 4,
   defaultRayStepSize: 1,
 
@@ -18,6 +20,7 @@ const defaultConsts = {
 export class ASCIIGameEngine {
   constructor(gameOptions) {
     this.gameOptions = gameOptions;
+    this.pressedKeys = {};
     this.fOV = defaultConsts.defaultFieldOfView;
 
     this.screenBuffer = new Array(gameOptions.height + 2)
@@ -38,16 +41,38 @@ export class ASCIIGameEngine {
       this.screenBuffer[i][gameOptions.width + 1] = "│";
     }
 
-    document.addEventListener("keydown", gameOptions.onKeyPress);
-    document.addEventListener("keyup", gameOptions.onKeyUp);
+    document.addEventListener("keydown", this.onKeyPress.bind(this));
+    document.addEventListener("keyup", this.onKeyUp.bind(this));
+
+    setInterval(this.FrameTrigger.bind(this), 1000 / gameOptions.fps);
+  }
+
+  onKeyPress(event) {
+    this.pressedKeys[event.key] = true;
+  }
+
+  onKeyUp(event) {
+    delete this.pressedKeys[event.key];
+  }
+
+  FrameTrigger() {
+    this.gameOptions.FrameProcess();
+  }
+
+  GetPressedKeys() {
+    return this.pressedKeys;
   }
 
   MovePlayer(player, dFrontBack, dSide, dAngle) {
-    let newA = player.a + dAngle * 0.1;
+    let newA = player.a + dAngle * defaultConsts.defaultPlayerSpin;
     let newX =
-      player.x + dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a);
+      player.x +
+      defaultConsts.defaultPlayerSpeed *
+        (dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a));
     let newY =
-      player.y + dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a);
+      player.y +
+      defaultConsts.defaultPlayerSpeed *
+        (dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a));
     return { ...player, x: newX, y: newY, a: newA };
   }
 

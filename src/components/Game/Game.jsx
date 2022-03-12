@@ -15,8 +15,7 @@ export default class Game extends Component {
       fps: 60,
       mapWidth: 32,
       mapHeight: 32,
-      onKeyPress: this.onKeyPress.bind(this),
-      onKeyUp: this.onKeyUp.bind(this),
+      FrameProcess: this.FrameProcess.bind(this),
     };
 
     this.state = {
@@ -27,7 +26,6 @@ export default class Game extends Component {
       ),
     };
 
-    this.keysPressed = {};
     this.engine = new ASCIIGameEngine(gameOptions);
     this.map = ASCIIGameEngine.CreateGameMap(
       gameOptions.mapWidth,
@@ -38,22 +36,23 @@ export default class Game extends Component {
     );
   }
 
-  onKeyPress(event) {
-    this.keysPressed[event.key] = true;
+  FrameProcess() {
     let dFrontBack = 0;
     let dSide = 0;
     let dAngle = 0;
 
-    if (this.keysPressed["w"]) {
+    let pressedKeys = this.engine.GetPressedKeys();
+
+    if (pressedKeys["w"]) {
       dFrontBack = 1;
     }
-    if (this.keysPressed["s"]) {
+    if (pressedKeys["s"]) {
       dFrontBack = -1;
     }
-    if (this.keysPressed["a"]) {
+    if (pressedKeys["a"]) {
       dAngle = -1;
     }
-    if (this.keysPressed["d"]) {
+    if (pressedKeys["d"]) {
       dAngle = 1;
     }
 
@@ -64,10 +63,6 @@ export default class Game extends Component {
       dAngle
     );
     this.setState({ player: newPlayer });
-  }
-
-  onKeyUp(event) {
-    delete this.keysPressed[event.key];
   }
 
   render() {
