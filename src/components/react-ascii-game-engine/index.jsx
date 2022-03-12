@@ -6,7 +6,7 @@ const defaultConsts = {
 
   defaultRenderOptions: {
     ceilingChar: " ",
-    wallChar: "#",
+    wallChar: [ "█", "▓", "▒", "░", " "],
     floorChar: "-",
   },
 
@@ -38,25 +38,14 @@ export class ASCIIGameEngine {
       this.screenBuffer[i][gameOptions.width + 1] = "│";
     }
 
-    document.addEventListener("keydown", this.onKeyPress.bind(this));
+    document.addEventListener("keydown", gameOptions.onKeyPress);
   }
 
-  onKeyPress(event) {
-    let dx = 0;
-    let dy = 0;
-    let da = 0;
-    if (event.key === "w") {
-      dx = 1;
-    } else if (event.key === "s") {
-      dx = -1;
-    } else if (event.key === "a") {
-      da = -0.1;
-    } else if (event.key === "d") {
-      da = 0.1;
-    } else {
-      return;
-    }
-    this.gameOptions.updatePlayer(dx, dy, da);
+  MovePlayer(player, dFrontBack, dSide, dAngle) {
+    let newA = player.a + dAngle * 0.1;
+    let newX = player.x + dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a);
+    let newY = player.y + dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a);
+    return {...player, x: newX, y: newY, a: newA};
   }
 
   Draw(x, y, char) {
@@ -66,7 +55,7 @@ export class ASCIIGameEngine {
   DrawMap(map, player, posx, posy) {
     map.mapBuffer.forEach((line, y) => {
       line.forEach((col, x) => {
-        if (x === player.x && y === player.y) {
+        if (x === Math.floor(player.x) && y === Math.floor(player.y)) {
           this.Draw(x + posx, y + posy, "P");
         } else {
           this.Draw(x + posx, y + posy, map.mapBuffer[y][x]);
@@ -83,7 +72,7 @@ export class ASCIIGameEngine {
       let rayY = Math.cos(rayAngle);
       let distanceToWall = 0;
       let hitWall = false;
-      while (!hitWall && distanceToWall < this.gameOptions.width) {
+      while (!hitWall && distanceToWall < map.width) {
         distanceToWall += defaultConsts.defaultRayStepSize;
         let testX = Math.round(player.x + rayX * distanceToWall);
         let testY = Math.round(player.y + rayY * distanceToWall);
@@ -106,7 +95,8 @@ export class ASCIIGameEngine {
         if (y < ceilingSize) {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
-          this.Draw(x, y, defaultConsts.defaultRenderOptions.wallChar);
+          let wallShade = Math.floor((distanceToWall/map.width) * defaultConsts.defaultRenderOptions.wallChar.length-1);
+          this.Draw(x, y, defaultConsts.defaultRenderOptions.wallChar[wallShade]);
         } else {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.floorChar);
         }

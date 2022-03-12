@@ -7,13 +7,18 @@ export default class Game extends Component {
   static propTypes = {};
   constructor(props) {
     super(props);
+
+    this.state = {
+      player: new Player(15, 5, 0),
+    };
+
     const gameOptions = {
       width: 134,
       height: 80,
       fps: 60,
       mapLines: 20,
       mapCols: 20,
-      updatePlayer: this.updatePlayer.bind(this),
+      onKeyPress: this.onKeyPress.bind(this),
     };
 
     this.engine = new ASCIIGameEngine(gameOptions);
@@ -24,16 +29,22 @@ export default class Game extends Component {
         foorChar: " ",
       }
     );
-    this.state = {
-      player: new Player(15, 5, 0),
-    };
   }
 
-  updatePlayer (dx, dy, da) {
-    let newPlayer = new Player(this.state.player.x+dx, this.state.player.y+dy, this.state.player.a+da);
-    this.setState({
-      player: newPlayer
-    });
+  onKeyPress(event) {
+    let newPlayer = this.state.player;
+    if (event.key === "w") {
+      newPlayer = this.engine.MovePlayer(this.state.player, 1, 0, 0);
+    } else if (event.key === "s") {
+      newPlayer = this.engine.MovePlayer(this.state.player, -1, 0, 0);
+    } else if (event.key === "a") {
+      newPlayer = this.engine.MovePlayer(this.state.player, 0, 0, -1);
+    } else if (event.key === "d") {
+      newPlayer = this.engine.MovePlayer(this.state.player, 0, 0, 1);
+    } else {
+      return;
+    }
+    this.setState({ player: newPlayer });
   }
 
   render() {
