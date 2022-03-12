@@ -8,8 +8,8 @@ const defaultConsts = {
 
   defaultRenderOptions: {
     ceilingChar: " ",
-    wallChar: ["█", "▓", "▒", "░", " "],
-    floorChar: "-",
+    wallChar: ["█", "▓", "▒", "░"],
+    floorChar: ["@", ";", "."],
   },
 
   defaultMapOptions: {
@@ -63,16 +63,22 @@ export class ASCIIGameEngine {
     return this.pressedKeys;
   }
 
-  MovePlayer(player, dFrontBack, dSide, dAngle) {
+  MovePlayer(player, map, dFrontBack, dSide, dAngle) {
     let newA = player.a + dAngle * defaultConsts.defaultPlayerSpin;
     let newX =
       player.x +
       defaultConsts.defaultPlayerSpeed *
-        (dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a));
+        (dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a));
     let newY =
       player.y +
       defaultConsts.defaultPlayerSpeed *
-        (dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a));
+        (dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a));
+    if (
+      map.mapBuffer[Math.floor(newY)][Math.floor(newX)] === map.options.wallChar
+    ) {
+      newX = player.x;
+      newY = player.y;
+    }
     return { ...player, x: newX, y: newY, a: newA };
   }
 
@@ -81,10 +87,15 @@ export class ASCIIGameEngine {
   }
 
   DrawMap(map, player, posx, posy) {
+    let pointerX = Math.floor(player.x + 3 * Math.cos(player.a));
+    let pointerY = Math.floor(player.y + 3 * Math.sin(player.a));
+
     map.mapBuffer.forEach((line, y) => {
       line.forEach((col, x) => {
         if (x === Math.floor(player.x) && y === Math.floor(player.y)) {
           this.Draw(x + posx, y + posy, "P");
+        } else if (x === pointerX && y === pointerY) {
+          this.Draw(x + posx, y + posy, "*");
         } else {
           this.Draw(x + posx, y + posy, map.mapBuffer[y][x]);
         }
@@ -96,8 +107,8 @@ export class ASCIIGameEngine {
     for (let x = 0; x < this.gameOptions.width; x++) {
       let rayAngle =
         player.a - this.fOV / 2 + (x * this.fOV) / this.gameOptions.width;
-      let rayX = Math.sin(rayAngle);
-      let rayY = Math.cos(rayAngle);
+      let rayX = Math.cos(rayAngle);
+      let rayY = Math.sin(rayAngle);
       let distanceToWall = 0;
       let hitWall = false;
       while (!hitWall && distanceToWall < map.width) {
@@ -124,8 +135,8 @@ export class ASCIIGameEngine {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
           let wallShade = Math.floor(
-            (distanceToWall / map.width) *
-              (defaultConsts.defaultRenderOptions.wallChar.length - 1)
+            (distanceToWall / (map.width + 1)) *
+              defaultConsts.defaultRenderOptions.wallChar.length
           );
           this.Draw(
             x,
@@ -133,7 +144,16 @@ export class ASCIIGameEngine {
             defaultConsts.defaultRenderOptions.wallChar[wallShade]
           );
         } else {
-          this.Draw(x, y, defaultConsts.defaultRenderOptions.floorChar);
+          let floorShade = Math.floor(
+            ((y - floorSize) / (ceilingSize + 1)) *
+              defaultConsts.defaultRenderOptions.floorChar.length
+          );
+
+          this.Draw(
+            x,
+            y,
+            defaultConsts.defaultRenderOptions.floorChar[floorShade]
+          );
         }
       }
     }
@@ -166,19 +186,19 @@ export class ASCIIGameEngine {
         ) {
           char = options.wallChar;
         }
-        // To test
-        if (
-          widx === width / 2 &&
-          (hidx > height / 2 + 4 || hidx < height / 2 - 4)
-        ) {
-          char = options.wallChar;
-        }
-        if (
-          (widx > width / 2 + 4 || widx < width / 2 - 4) &&
-          hidx === height / 2
-        ) {
-          char = options.wallChar;
-        }
+        // // To test
+        // if (
+        //   widx === width / 2 &&
+        //   (hidx > height / 2 + 4 || hidx < height / 2 - 4)
+        // ) {
+        //   char = options.wallChar;
+        // }
+        // if (
+        //   (widx > width / 2 + 4 || widx < width / 2 - 4) &&
+        //   hidx === height / 2
+        // ) {
+        //   char = options.wallChar;
+        // }
         return char;
       })
     );

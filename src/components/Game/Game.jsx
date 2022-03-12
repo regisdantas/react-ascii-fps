@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
-import React, { Component } from "react";
+import React from "react";
 import { ASCIIGameEngine, Player } from "../react-ascii-game-engine";
 // import structuredClone from "@ungap/structured-clone";
 const usedKeys = ["a", "s", "d", "w"];
 
-export default class Game extends Component {
+export default class Game extends React.Component {
   static propTypes = {};
   constructor(props) {
     super(props);
@@ -50,14 +50,21 @@ export default class Game extends Component {
       dFrontBack = -1;
     }
     if (pressedKeys["a"]) {
-      dAngle = -1;
+      dSide = -1;
     }
     if (pressedKeys["d"]) {
+      dSide = 1;
+    }
+    if (pressedKeys["ArrowLeft"]) {
+      dAngle = -1;
+    }
+    if (pressedKeys["ArrowRight"]) {
       dAngle = 1;
     }
 
     const newPlayer = this.engine.MovePlayer(
       this.state.player,
+      this.map,
       dFrontBack,
       dSide,
       dAngle
