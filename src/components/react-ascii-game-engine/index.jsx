@@ -1,14 +1,15 @@
 import "./index.css";
 
 const defaultConsts = {
-  defaultPlayerSpeed: 0.1,
-  defaultPlayerSpin: 0.02,
+  defaultPlayerSpeed: 0.05,
+  defaultPlayerSpin: 0.04,
   defaultFieldOfView: Math.PI / 4,
   defaultRayStepSize: 1,
 
   defaultRenderOptions: {
-    ceilingChar: " ",
+    ceilingChar: "-",
     wallChar: ["█", "▓", "▒", "░"],
+    // wallChar: ["1", "2", "3", "4"],
     floorChar: [".", ";", "@"],
   },
 
@@ -86,7 +87,7 @@ export class ASCIIGameEngine {
       x: this.mousePosition.x,
       y: this.mousePosition.y,
       dx: this.mousePosition.offsetX,
-      dy: this.mousePosition.offsetY
+      dy: this.mousePosition.offsetY,
     };
 
     this.mousePosition.offsetX = 0;
@@ -99,16 +100,22 @@ export class ASCIIGameEngine {
     let newX =
       player.x +
       defaultConsts.defaultPlayerSpeed *
-        (dFrontBack * Math.cos(player.a) + dSide * Math.sin(player.a));
+        (dFrontBack * Math.cos(player.a) - dSide * Math.sin(player.a));
     let newY =
       player.y +
       defaultConsts.defaultPlayerSpeed *
         (dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a));
     if (
       map.mapBuffer[Math.floor(newY)][Math.floor(newX)] === map.options.wallChar
-    ) {
-      newX = player.x;
-      newY = player.y;
+      ) {
+      if (map.mapBuffer[Math.floor(newY)][Math.floor(player.x)] === map.options.wallChar){
+        newY = player.y;
+        if (map.mapBuffer[Math.floor(player.y)][Math.floor(newX)] === map.options.wallChar){
+          newX = player.x;
+        } 
+      } else {
+        newX = player.x;
+      }
     }
     return { ...player, x: newX, y: newY, a: newA };
   }
@@ -156,6 +163,26 @@ export class ASCIIGameEngine {
           hitWall = true;
         } else if (map.mapBuffer[testY][testX] === map.options.wallChar) {
           hitWall = true;
+          // let corners = [];
+          // for (let tx = 0; tx < 2; tx++) {
+          //   for (let ty = 0; ty < 2; ty++) {
+          //     let cornerX = testX + tx - player.x;
+          //     let cornerY = testY + ty - player.y;
+          //     let cornerDistance = Math.sqrt(
+          //       cornerX * cornerX + cornerY * cornerY
+          //     );
+          //     let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
+          //     corners.push({ distance: cornerDistance, dot: dot });
+          //   }
+          // }
+          // corners.sort((a, b) => (a.distance < b.distance ? 1 : -1));
+          // let testAgle = 0.002;
+          // if (Math.acos(corners[0].dot) < testAgle) {
+          //   isBoundary = true;
+          // }
+          // if (Math.acos(corners[1].dot) < testAgle) {
+          //   isBoundary = true;
+          // }
         }
       }
       let ceilingSize =
@@ -171,11 +198,15 @@ export class ASCIIGameEngine {
         if (y < ceilingSize) {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
-          this.Draw(
-            x,
-            y,
-            defaultConsts.defaultRenderOptions.wallChar[wallShade]
-          );
+          if (isBoundary) {
+            this.Draw(x, y, " ");
+          } else {
+            this.Draw(
+              x,
+              y,
+              defaultConsts.defaultRenderOptions.wallChar[wallShade]
+            );
+          }
         } else {
           let floorShade = Math.floor(
             ((y - floorSize) / (ceilingSize + 1)) *
@@ -198,9 +229,9 @@ export class ASCIIGameEngine {
       this.canvas.mozRequestPointerLock ||
       this.canvas.webkitRequestPointerLock;
     this.canvas.requestPointerLock();
-
     this.DrawView(player, map);
     this.DrawMap(map, player, 2, 2);
+
     return (
       <div id="game-screen" className="game-screen">
         <pre>
@@ -212,16 +243,28 @@ export class ASCIIGameEngine {
     );
   }
 
+  static SetGameMap(mapBuffer, inOptions) {
+    let options = { ...defaultConsts.defaultMapOptions };
+    const height = mapBuffer.length;
+    const width = mapBuffer[0].length;
+    return {
+      mapBuffer: mapBuffer,
+      width: width,
+      height: height,
+      options: options,
+    };
+  }
+
   static CreateGameMap(width, height, inOptions) {
     let options = { ...defaultConsts.defaultMapOptions };
-    let mapBuffer = new Array(height).fill().map((_, hidx) =>
-      new Array(width).fill().map((_, widx) => {
+    let mapBuffer = new Array(height + 2).fill().map((_, hidx) =>
+      new Array(width + 2).fill().map((_, widx) => {
         let char = options.floorChar;
         if (
           widx === 0 ||
-          widx === width - 1 ||
+          widx === width + 1 ||
           hidx === 0 ||
-          hidx === height - 1
+          hidx === height + 1
         ) {
           char = options.wallChar;
         }
@@ -243,8 +286,8 @@ export class ASCIIGameEngine {
     );
     return {
       mapBuffer: mapBuffer,
-      width: width,
-      height: height,
+      width: width + 2,
+      height: height + 2,
       options: options,
     };
   }
@@ -252,8 +295,8 @@ export class ASCIIGameEngine {
 
 export class Player {
   constructor(x, y, a) {
-    this.x = x;
-    this.y = y;
+    this.x = x + 1;
+    this.y = y + 1;
     this.a = a;
   }
 
