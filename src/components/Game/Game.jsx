@@ -36,30 +36,39 @@ export default class Game extends React.Component {
     );
   }
 
+  componentDidMount() {
+
+  }
+
   FrameProcess() {
     let dFrontBack = 0;
     let dSide = 0;
     let dAngle = 0;
 
     let pressedKeys = this.engine.GetPressedKeys();
-
-    if (pressedKeys["w"]) {
+    if (pressedKeys.hasOwnProperty("w")) {
       dFrontBack = 1;
     }
-    if (pressedKeys["s"]) {
+    if (pressedKeys.hasOwnProperty("s")) {
       dFrontBack = -1;
     }
-    if (pressedKeys["a"]) {
+    if (pressedKeys.hasOwnProperty("a")) {
       dSide = -1;
     }
-    if (pressedKeys["d"]) {
+    if (pressedKeys.hasOwnProperty("d")) {
       dSide = 1;
     }
-    if (pressedKeys["ArrowLeft"]) {
+    if (pressedKeys.hasOwnProperty("ArrowLeft")) {
       dAngle = -1;
     }
-    if (pressedKeys["ArrowRight"]) {
+    if (pressedKeys.hasOwnProperty("ArrowRight")) {
+      dAngle = +1;
+    }
+    let mouseMoves = this.engine.GetMouseMoves();
+    if (mouseMoves.dx > 1) {
       dAngle = 1;
+    } else if (mouseMoves.dx < -1) {
+      dAngle = -1;
     }
 
     const newPlayer = this.engine.MovePlayer(

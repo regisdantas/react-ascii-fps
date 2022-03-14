@@ -1,7 +1,7 @@
 import "./index.css";
 
 const defaultConsts = {
-  defaultPlayerSpeed: 0.2,
+  defaultPlayerSpeed: 0.1,
   defaultPlayerSpin: 0.02,
   defaultFieldOfView: Math.PI / 4,
   defaultRayStepSize: 1,
@@ -9,7 +9,7 @@ const defaultConsts = {
   defaultRenderOptions: {
     ceilingChar: " ",
     wallChar: ["█", "▓", "▒", "░"],
-    floorChar: ["@", ";", "."],
+    floorChar: [".", ";", "@"],
   },
 
   defaultMapOptions: {
@@ -22,6 +22,12 @@ export class ASCIIGameEngine {
     this.gameOptions = gameOptions;
     this.pressedKeys = {};
     this.fOV = defaultConsts.defaultFieldOfView;
+    this.mousePosition = {
+      x: 0,
+      y: 0,
+      offsetX: 0,
+      offsetY: 0,
+    };
 
     this.screenBuffer = new Array(gameOptions.height + 2)
       .fill()
@@ -45,6 +51,18 @@ export class ASCIIGameEngine {
     document.addEventListener("keyup", this.onKeyUp.bind(this));
 
     setInterval(this.FrameTrigger.bind(this), 1000 / gameOptions.fps);
+
+    document.onmousemove = this.OnMouseMove.bind(this);
+
+    this.canvas = document.createElement("canvas");
+    document.body.appendChild(this.canvas);
+  }
+
+  OnMouseMove(event) {
+    this.mousePosition.x = event.x;
+    this.mousePosition.y = event.y;
+    this.mousePosition.offsetX += event.movementX;
+    this.mousePosition.offsetY += event.movementY;
   }
 
   onKeyPress(event) {
@@ -61,6 +79,19 @@ export class ASCIIGameEngine {
 
   GetPressedKeys() {
     return this.pressedKeys;
+  }
+
+  GetMouseMoves() {
+    let moves = {
+      x: this.mousePosition.x,
+      y: this.mousePosition.y,
+      dx: this.mousePosition.offsetX,
+      dy: this.mousePosition.offsetY
+    };
+
+    this.mousePosition.offsetX = 0;
+    this.mousePosition.offsetY = 0;
+    return moves;
   }
 
   MovePlayer(player, map, dFrontBack, dSide, dAngle) {
@@ -111,6 +142,7 @@ export class ASCIIGameEngine {
       let rayY = Math.sin(rayAngle);
       let distanceToWall = 0;
       let hitWall = false;
+      let isBoundary = false;
       while (!hitWall && distanceToWall < map.width) {
         distanceToWall += defaultConsts.defaultRayStepSize;
         let testX = Math.round(player.x + rayX * distanceToWall);
@@ -130,14 +162,15 @@ export class ASCIIGameEngine {
         this.gameOptions.height / 2 - this.gameOptions.height / distanceToWall;
       let floorSize = this.gameOptions.height - ceilingSize;
 
+      let wallShade = Math.floor(
+        (distanceToWall / (map.width + 1)) *
+          defaultConsts.defaultRenderOptions.wallChar.length
+      );
+
       for (let y = 0; y < this.gameOptions.height; y++) {
         if (y < ceilingSize) {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
-          let wallShade = Math.floor(
-            (distanceToWall / (map.width + 1)) *
-              defaultConsts.defaultRenderOptions.wallChar.length
-          );
           this.Draw(
             x,
             y,
@@ -160,10 +193,16 @@ export class ASCIIGameEngine {
   }
 
   render(player, map) {
+    this.canvas.requestPointerLock =
+      this.canvas.requestPointerLock ||
+      this.canvas.mozRequestPointerLock ||
+      this.canvas.webkitRequestPointerLock;
+    this.canvas.requestPointerLock();
+
     this.DrawView(player, map);
     this.DrawMap(map, player, 2, 2);
     return (
-      <div className="game-screen">
+      <div id="game-screen" className="game-screen">
         <pre>
           {this.screenBuffer.map((line, idx) => {
             return <span>{`${line.join("")}\n`}</span>;

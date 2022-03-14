@@ -1,5 +1,5 @@
 {
-  "name": "react-ascii-3d-shooter",
+  "name": "react-ascii-1st-person-shooter",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -10,7 +10,6 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
-    "tooloud": "^2.0.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -20,7 +19,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "docker-deploy": "docker rm -f react-ascii-3d-shooter-ctr ; docker build -t regismdantas/react-ascii-3d-shooter . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-3d-shooter-ctr regismdantas/react-ascii-3d-shooter",
+    "docker-deploy": "docker rm -f react-ascii-1st-person-shooter-ctr ; docker build -t regismdantas/react-ascii-1st-person-shooter . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-1st-person-shooter-ctr regismdantas/react-ascii-1st-person-shooter",
     "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "eslintConfig": {
