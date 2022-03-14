@@ -1,3 +1,4 @@
+import React from "react";
 import "./index.css";
 
 const defaultConsts = {
@@ -9,7 +10,6 @@ const defaultConsts = {
   defaultRenderOptions: {
     ceilingChar: "-",
     wallChar: ["█", "▓", "▒", "░"],
-    // wallChar: ["1", "2", "3", "4"],
     floorChar: [".", ";", "@"],
   },
 
@@ -54,9 +54,20 @@ export class ASCIIGameEngine {
     setInterval(this.FrameTrigger.bind(this), 1000 / gameOptions.fps);
 
     document.onmousemove = this.OnMouseMove.bind(this);
+  }
 
-    this.canvas = document.createElement("canvas");
-    document.body.appendChild(this.canvas);
+  PointerLock() {
+    let canvas = document.getElementById("game-screen");
+    canvas.requestPointerLock =
+      canvas.requestPointerLock ||
+      canvas.mozRequestPointerLock ||
+      canvas.webkitRequestPointerLock;
+    canvas.requestPointerLock();
+  }
+
+  PointerUnlock() {
+    let canvas = document.getElementById("game-screen");
+    canvas.requestPointerUnlock();
   }
 
   OnMouseMove(event) {
@@ -107,12 +118,18 @@ export class ASCIIGameEngine {
         (dFrontBack * Math.sin(player.a) + dSide * Math.cos(player.a));
     if (
       map.mapBuffer[Math.floor(newY)][Math.floor(newX)] === map.options.wallChar
+    ) {
+      if (
+        map.mapBuffer[Math.floor(newY)][Math.floor(player.x)] ===
+        map.options.wallChar
       ) {
-      if (map.mapBuffer[Math.floor(newY)][Math.floor(player.x)] === map.options.wallChar){
         newY = player.y;
-        if (map.mapBuffer[Math.floor(player.y)][Math.floor(newX)] === map.options.wallChar){
+        if (
+          map.mapBuffer[Math.floor(player.y)][Math.floor(newX)] ===
+          map.options.wallChar
+        ) {
           newX = player.x;
-        } 
+        }
       } else {
         newX = player.x;
       }
@@ -207,7 +224,7 @@ export class ASCIIGameEngine {
               defaultConsts.defaultRenderOptions.wallChar[wallShade]
             );
           }
-        } else {
+        } else if (y > floorSize) {
           let floorShade = Math.floor(
             ((y - floorSize) / (ceilingSize + 1)) *
               defaultConsts.defaultRenderOptions.floorChar.length
@@ -224,17 +241,38 @@ export class ASCIIGameEngine {
   }
 
   render(player, map) {
-    this.canvas.requestPointerLock =
-      this.canvas.requestPointerLock ||
-      this.canvas.mozRequestPointerLock ||
-      this.canvas.webkitRequestPointerLock;
-    this.canvas.requestPointerLock();
+    let currentColor = "black";
     this.DrawView(player, map);
     this.DrawMap(map, player, 2, 2);
 
     return (
-      <div id="game-screen" className="game-screen">
+      <div
+        id="game-screen"
+        className="game-screen"
+        onClick={() => this.PointerLock()}
+      >
         <pre>
+          {/* {this.screenBuffer.map((line, lidx) => {
+            let printLine = [];
+            line.map((char, cidx) => {
+              if (defaultConsts.defaultRenderOptions.wallChar.includes(char) && currentColor !== "black") {
+                printLine.push(<font color='black'>{char}</font>);
+                currentColor = "black";
+              } else if (defaultConsts.defaultRenderOptions.floorChar.includes(char) && currentColor !== "green") {
+                printLine.push(<font color='green'>{char}</font>);
+                currentColor = "green";
+              } else if (defaultConsts.defaultRenderOptions.ceilingChar.includes(char) && currentColor !== "red") {
+                printLine.push(<font color='red'>{char}</font>);
+                currentColor = "red";
+              } else {
+                printLine.push(char);
+              }
+            });
+            printLine.push("\n");
+            return <span>
+              {printLine.map(line => line)}
+            </span>;
+          })} */}
           {this.screenBuffer.map((line, idx) => {
             return <span>{`${line.join("")}\n`}</span>;
           })}

@@ -49,7 +49,7 @@ export default class Game extends React.Component {
 
     const gameOptions = {
       width: Math.floor(window.innerWidth/5),
-      height: Math.floor(window.innerHeight/5),
+      height: Math.floor(window.innerHeight/6),
       fps: 60,
       mapWidth: 32,
       mapHeight: 32,
@@ -71,10 +71,6 @@ export default class Game extends React.Component {
         foorChar: " ",
       }
     );
-  }
-
-  componentDidMount() {
-
   }
 
   FrameProcess() {
