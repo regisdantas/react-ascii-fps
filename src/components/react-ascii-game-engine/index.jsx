@@ -180,26 +180,26 @@ export class ASCIIGameEngine {
           hitWall = true;
         } else if (map.mapBuffer[testY][testX] === map.options.wallChar) {
           hitWall = true;
-          // let corners = [];
-          // for (let tx = 0; tx < 2; tx++) {
-          //   for (let ty = 0; ty < 2; ty++) {
-          //     let cornerX = testX + tx - player.x;
-          //     let cornerY = testY + ty - player.y;
-          //     let cornerDistance = Math.sqrt(
-          //       cornerX * cornerX + cornerY * cornerY
-          //     );
-          //     let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
-          //     corners.push({ distance: cornerDistance, dot: dot });
-          //   }
-          // }
-          // corners.sort((a, b) => (a.distance < b.distance ? 1 : -1));
-          // let testAgle = 0.002;
-          // if (Math.acos(corners[0].dot) < testAgle) {
-          //   isBoundary = true;
-          // }
-          // if (Math.acos(corners[1].dot) < testAgle) {
-          //   isBoundary = true;
-          // }
+          let corners = [];
+          for (let tx = 0; tx < 2; tx++) {
+            for (let ty = 0; ty < 2; ty++) {
+              let cornerX = testX + tx - player.x;
+              let cornerY = testY + ty - player.y;
+              let cornerDistance = Math.sqrt(
+                cornerX * cornerX + cornerY * cornerY
+              );
+              let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
+              corners.push({ distance: cornerDistance, dot: dot });
+            }
+          }
+          corners.sort((a, b) => (a.distance < b.distance ? 1 : -1));
+          let testAgle = 0.002;
+          if (Math.acos(corners[0].dot) < testAgle) {
+            isBoundary = true;
+          }
+          if (Math.acos(corners[1].dot) < testAgle) {
+            isBoundary = true;
+          }
         }
       }
       let ceilingSize =
@@ -238,6 +238,13 @@ export class ASCIIGameEngine {
         }
       }
     }
+    //Draw Aim
+    let centerX = Math.floor(this.gameOptions.width / 2) - 1;
+    let centerY = Math.floor(this.gameOptions.height / 2) - 1;
+    this.Draw(centerX, centerY - 1, "|");
+    this.Draw(centerX, centerY + 1, "|");
+    this.Draw(centerX - 1, centerY, "|");
+    this.Draw(centerX + 1, centerY, "|");
   }
 
   render(player, map) {
