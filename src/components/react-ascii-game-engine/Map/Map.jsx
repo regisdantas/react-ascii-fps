@@ -12,9 +12,16 @@ export default class Map {
     this.width = mapBuffer[0].length;
   }
 
+  Sample(x, y){
+    return this.mapBuffer[Math.floor(y)].charAt(Math.floor(x));
+  }
+
   CheckColision(x, y) {
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+      return true;
+    }
     if (
-      this.mapBuffer[Math.floor(y)][Math.floor(x)] ===
+      this.mapBuffer[Math.floor(y)].charAt(Math.floor(x)) ===
       this.options.wallChar
     ) {
       return true;

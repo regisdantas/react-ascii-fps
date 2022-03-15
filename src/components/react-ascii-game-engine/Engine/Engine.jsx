@@ -5,8 +5,10 @@ import "./Engine.css";
 
 export default class Engine {
   constructor(gameOptions) {
+    this.fps = 0;
+    this.totalFrames = 0;
     this.gameOptions = gameOptions;
-    this.pressedKeys = {};
+    this.recordedInput = {};
     this.fOV = defaultConsts.defaultFieldOfView;
     this.mousePosition = {
       x: 0,
@@ -38,8 +40,11 @@ export default class Engine {
     document.addEventListener("keyup", this.onKeyUp.bind(this));
 
     setInterval(this.FrameTrigger.bind(this), 1000 / gameOptions.fps);
+    setInterval(this.MeasureFPS.bind(this), 1000 );
 
     document.onmousemove = this.OnMouseMove.bind(this);
+    document.addEventListener("mousedown", this.onMouseDown.bind(this));
+    document.addEventListener("mouseup", this.onMouseUp.bind(this));
   }
 
   PointerLock() {
@@ -63,20 +68,45 @@ export default class Engine {
     this.mousePosition.offsetY += event.movementY;
   }
 
+  onMouseDown(event) {
+    this.recordedInput[`mouse_${event.button}`] = true;
+  }
+
+  onMouseUp(event) {
+    delete this.recordedInput[`mouse_${event.button}`];
+  }
+
   onKeyPress(event) {
-    this.pressedKeys[event.key] = true;
+    this.recordedInput[event.key] = true;
   }
 
   onKeyUp(event) {
-    delete this.pressedKeys[event.key];
+    delete this.recordedInput[event.key];
+  }
+
+  MeasureFPS() {
+    this.fps = this.totalFrames;
+    this.totalFrames = 0;
   }
 
   FrameTrigger() {
+    this.totalFrames++;
     this.gameOptions.FrameProcess();
   }
 
-  GetPressedKeys() {
-    return this.pressedKeys;
+  GetInput() {
+    return this.recordedInput;
+  }
+
+  CheckObjColision(obj1, obj2) {
+    const vecX = obj1.x - obj2.x;
+    const vecY = obj1.y - obj2.y;
+    const distSquare = vecX * vecX + vecY * vecY;
+
+    if (distSquare < 0.1) {
+      return true;
+    }
+    return false;
   }
 
   GetMouseMoves() {
@@ -100,19 +130,20 @@ export default class Engine {
     let pointerX = Math.floor(player.x + 3 * Math.cos(player.a));
     let pointerY = Math.floor(player.y + 3 * Math.sin(player.a));
 
-    map.mapBuffer.forEach((line, y) => {
-      line.forEach((col, x) => {
+    for (let y = 0; y < map.height; y++) {
+      for (let x = 0; x < map.width; x++) {
         if (x === Math.floor(player.x) && y === Math.floor(player.y)) {
           this.Draw(x + posx, y + posy, "P");
         } else if (x === pointerX && y === pointerY) {
           this.Draw(x + posx, y + posy, "*");
         } else {
-          this.Draw(x + posx, y + posy, map.mapBuffer[y][x]);
+          this.Draw(x + posx, y + posy, map.Sample(x, y));
         }
-      });
-    });
+      }
+    }
     objects.map((obj) => {
-      this.Draw(posx + obj.x, posy + obj.y, "E");
+      if (obj.type === "enemy")
+        this.Draw(Math.floor(posx + obj.x), Math.floor(posy + obj.y), "E");
     });
   }
 
@@ -138,26 +169,26 @@ export default class Engine {
           hitWall = true;
         } else if (map.mapBuffer[testY][testX] === map.options.wallChar) {
           hitWall = true;
-          let corners = [];
-          for (let tx = 0; tx < 2; tx++) {
-            for (let ty = 0; ty < 2; ty++) {
-              let cornerX = testX + tx - player.x;
-              let cornerY = testY + ty - player.y;
-              let cornerDistance = Math.sqrt(
-                cornerX * cornerX + cornerY * cornerY
-              );
-              let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
-              corners.push({ distance: cornerDistance, dot: dot });
-            }
-          }
-          corners.sort((a, b) => (a.distance > b.distance ? 1 : -1));
-          let testAgle = 0.003;
-          if (Math.acos(corners[0].dot) < testAgle) {
-            isBoundary = true;
-          }
-          if (Math.acos(corners[1].dot) < testAgle) {
-            isBoundary = true;
-          }
+          // let corners = [];
+          // for (let tx = 0; tx < 2; tx++) {
+          //   for (let ty = 0; ty < 2; ty++) {
+          //     let cornerX = testX + tx - player.x;
+          //     let cornerY = testY + ty - player.y;
+          //     let cornerDistance = Math.sqrt(
+          //       cornerX * cornerX + cornerY * cornerY
+          //     );
+          //     let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
+          //     corners.push({ distance: cornerDistance, dot: dot });
+          //   }
+          // }
+          // corners.sort((a, b) => (a.distance > b.distance ? 1 : -1));
+          // let testAgle = 0.003;
+          // if (Math.acos(corners[0].dot) < testAgle) {
+          //   isBoundary = true;
+          // }
+          // if (Math.acos(corners[1].dot) < testAgle) {
+          //   isBoundary = true;
+          // }
         }
       }
       let ceilingSize =
@@ -258,15 +289,15 @@ export default class Engine {
     }
   }
 
-  render(game, player, characters) {
+  render(game, player, entities) {
     this.DrawView(player, game.map);
     game.objects.map((obj) => {
       this.DrawObject(obj, player);
     });
-    characters.map((character) => {
-      this.DrawObject(character, player);
+    entities.map((entity) => {
+      this.DrawObject(entity, player);
     })
-    this.DrawMap(game.map, player, game.objects, 2, 2);
+    this.DrawMap(game.map, player, entities, 2, 2);
 
     return (
       <div
@@ -274,6 +305,7 @@ export default class Engine {
         className="game-screen"
         onClick={() => this.PointerLock()}
       >
+        <span style={{fontSize: '16px'}}>{`FPS: ${this.fps}`}</span>
         <pre>
           {this.screenBuffer.map((line, idx) => {
             return <span>{`${line.join("")}\n`}</span>;

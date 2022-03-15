@@ -8,9 +8,12 @@ import {
   Game,
   Enemy,
   Sprite,
+  Bullet,
 } from "../react-ascii-game-engine";
 import { testMap } from "./TestMap.js";
 import { enemySprite } from "./resources/enemy";
+
+const bulletSprite = [" | ", "-O-", " | "];
 
 export default class ASCIIFPS extends React.Component {
   static propTypes = {};
@@ -33,44 +36,46 @@ export default class ASCIIFPS extends React.Component {
     this.game = new Game(this.engine, this.map, []);
 
     let player = new Player(2, 2, 0);
-    let enemies = [];
+    let entities = [];
     for (let i = 0; i < 10; ) {
       let x = Math.floor(Math.random() * gameOptions.mapWidth);
       let y = Math.floor(Math.random() * gameOptions.mapHeight);
       if (!this.map.CheckColision(x, y)) {
-        enemies.push(new Enemy(x, y, new Sprite(enemySprite)));
+        entities.push(new Enemy(x, y, new Sprite(enemySprite)));
         i++;
       }
     }
 
     this.state = {
       player: player,
-      characters: enemies,
+      entities: entities,
     };
   }
 
   FrameProcess() {
+    let newPlayer = this.state.player;
+    let update = false;
     let dFrontBack = 0;
     let dSide = 0;
     let dAngle = 0;
 
-    let pressedKeys = this.engine.GetPressedKeys();
-    if (pressedKeys.hasOwnProperty("w")) {
+    let recordedInput = this.engine.GetInput();
+    if (recordedInput.hasOwnProperty("w")) {
       dFrontBack = 1;
     }
-    if (pressedKeys.hasOwnProperty("s")) {
+    if (recordedInput.hasOwnProperty("s")) {
       dFrontBack = -1;
     }
-    if (pressedKeys.hasOwnProperty("a")) {
+    if (recordedInput.hasOwnProperty("a")) {
       dSide = -1;
     }
-    if (pressedKeys.hasOwnProperty("d")) {
+    if (recordedInput.hasOwnProperty("d")) {
       dSide = 1;
     }
-    if (pressedKeys.hasOwnProperty("ArrowLeft")) {
+    if (recordedInput.hasOwnProperty("ArrowLeft")) {
       dAngle = -1;
     }
-    if (pressedKeys.hasOwnProperty("ArrowRight")) {
+    if (recordedInput.hasOwnProperty("ArrowRight")) {
       dAngle = +1;
     }
     let mouseMoves = this.engine.GetMouseMoves();
@@ -81,14 +86,54 @@ export default class ASCIIFPS extends React.Component {
     }
 
     if (dFrontBack !== 0 || dSide !== 0 || dAngle !== 0) {
-      let newPlayer = this.state.player.MovePlayer(
+      newPlayer = this.state.player.MovePlayer(
         this.game,
         dFrontBack,
         dSide,
         dAngle
       );
-      let state = { ... this.state};
+      update = true;
+    }
+
+    let entities = [];
+    this.state.entities.map((entity) => {
+      let { update: newUpdate, entity: newEntity } = entity.FrameProcess(
+        this.map
+      );
+      if (!newEntity.dead) {
+        entities.push(newEntity);
+      }
+      update = update || newUpdate;
+    });
+
+    if (recordedInput.hasOwnProperty("mouse_0")) {
+      entities.push(
+        new Bullet(
+          newPlayer.x,
+          newPlayer.y,
+          newPlayer.a,
+          new Sprite(bulletSprite)
+        )
+      );
+      update = true;
+    }
+
+    entities.map((entity1) => {
+      entities.map((entity2) => {
+        if (entity1 !== entity2 && entity1.type !== entity2.type) {
+          if (this.engine.CheckObjColision(entity1, entity2)) {
+            entity1.Kill();
+            entity2.Kill();
+            update = true;
+          }
+        }
+      });
+    });
+
+    if (update) {
+      let state = { ...this.state };
       state.player = newPlayer;
+      state.entities = entities;
       this.setState(state);
     }
   }
@@ -97,7 +142,7 @@ export default class ASCIIFPS extends React.Component {
     return this.engine.render(
       this.game,
       this.state.player,
-      this.state.characters
+      this.state.entities
     );
   }
 }
