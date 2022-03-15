@@ -96,7 +96,7 @@ export default class Engine {
     this.screenBuffer[y + 1][x + 1] = char;
   }
 
-  DrawMap(map, player, posx, posy) {
+  DrawMap(map, player, objects, posx, posy) {
     let pointerX = Math.floor(player.x + 3 * Math.cos(player.a));
     let pointerY = Math.floor(player.y + 3 * Math.sin(player.a));
 
@@ -111,7 +111,9 @@ export default class Engine {
         }
       });
     });
-    this.Draw(posx + 10, posy + 2, "E");
+    objects.map((obj) => {
+      this.Draw(posx + obj.x, posy + obj.y, "E");
+    });
   }
 
   DrawView(player, map) {
@@ -221,14 +223,14 @@ export default class Engine {
     let isInView = Math.abs(objA) < this.fOV / 2;
     if (
       isInView &&
-      distToPlayer >= 0.6 &&
+      distToPlayer >= 1 &&
       distToPlayer < this.gameOptions.width
     ) {
       let objCeiling = Math.floor(
         this.gameOptions.height / 2.0 - this.gameOptions.height / distToPlayer
       );
       let objFloor = this.gameOptions.height - objCeiling;
-      let objHeight = objFloor - objCeiling;
+      let objHeight = (objFloor - objCeiling)*0.8;
       let objAspectRatio = obj.sprite.height / obj.sprite.width;
       let objWidth = objHeight / objAspectRatio;
       let objMiddle =
@@ -261,7 +263,10 @@ export default class Engine {
     game.objects.map((obj) => {
       this.DrawObject(obj, player);
     });
-    this.DrawMap(game.map, player, 2, 2);
+    characters.map((character) => {
+      this.DrawObject(character, player);
+    })
+    this.DrawMap(game.map, player, game.objects, 2, 2);
 
     return (
       <div

@@ -30,14 +30,22 @@ export default class ASCIIFPS extends React.Component {
     this.map = new Map(testMap, {
       foorChar: " ",
     });
+    this.game = new Game(this.engine, this.map, []);
+
     let player = new Player(2, 2, 0);
-    this.game = new Game(this.engine, this.map, [
-      new Enemy(10, 2, new Sprite(enemySprite)),
-    ]);
+    let enemies = [];
+    for (let i = 0; i < 10; ) {
+      let x = Math.floor(Math.random() * gameOptions.mapWidth);
+      let y = Math.floor(Math.random() * gameOptions.mapHeight);
+      if (!this.map.CheckColision(x, y)) {
+        enemies.push(new Enemy(x, y, new Sprite(enemySprite)));
+        i++;
+      }
+    }
 
     this.state = {
       player: player,
-      characters: [],
+      characters: enemies,
     };
   }
 
@@ -79,7 +87,7 @@ export default class ASCIIFPS extends React.Component {
         dSide,
         dAngle
       );
-      let state = structuredClone(this.state);
+      let state = { ... this.state};
       state.player = newPlayer;
       this.setState(state);
     }
