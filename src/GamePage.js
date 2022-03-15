@@ -1,10 +1,15 @@
-import Game from "./components/Game/Game";
+import ASCIIFPS from "./components/ASCIIFPS/ASCIIFPS";
+import Header from "./components/Header/Header";
 import "./GamePage.css";
 
 function GamePage() {
   return (
     <div className="GamePage">
-      <Game />
+      <Header
+        title="ASCII FPS"
+        menu={["Author", "Contact", "GitHub", "Portifolio"]}
+      />
+      <ASCIIFPS />
     </div>
   );
 }

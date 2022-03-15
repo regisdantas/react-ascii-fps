@@ -1,8 +1,12 @@
 {
-  "name": "react-ascii-1st-person-shooter",
+  "name": "react-ascii-fps",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.8.2",
+    "@emotion/styled": "^11.8.1",
+    "@mui/icons-material": "^5.5.1",
+    "@mui/material": "^5.5.1",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^13.5.0",
@@ -20,7 +24,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "docker-deploy": "docker rm -f react-ascii-1st-person-shooter-ctr ; docker build -t regismdantas/react-ascii-1st-person-shooter . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-1st-person-shooter-ctr regismdantas/react-ascii-1st-person-shooter",
+    "docker-deploy": "docker rm -f react-ascii-fps-ctr ; docker build -t regismdantas/react-ascii-fps . ; docker run -it -v $(pwd)/src:/app/src -d -p 3000:3000 --name react-ascii-fps-ctr regismdantas/react-ascii-fps",
     "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "eslintConfig": {

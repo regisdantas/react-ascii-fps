@@ -1,4 +1,12 @@
 .GamePage {
+  position: absolute;
+  top: 60px;
+  bottom: 0px;
+  width: 100%;
+
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
