@@ -4,6 +4,13 @@ export default class Player extends GameObject {
   constructor(x, y, a) {
     super(x, y);
     this.a = a;
+    this.score = 0;
+  }
+
+  CopyUpdate(x, y, a) {
+    let newPlayer = new Player(x, y, a);
+    newPlayer.score = this.score;
+    return newPlayer;
   }
 
   MovePlayer(game, dFrontBack, dSide, dAngle) {
@@ -38,6 +45,6 @@ export default class Player extends GameObject {
     // this.x = newX;
     // this.y = newY;
     // this.a = newA;
-    return new Player(newX, newY, newA);
+    return this.CopyUpdate(newX, newY, newA);
   }
 }

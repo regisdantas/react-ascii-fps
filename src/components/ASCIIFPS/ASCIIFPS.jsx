@@ -36,8 +36,10 @@ export default class ASCIIFPS extends React.Component {
     this.game = new Game(this.engine, this.map, []);
 
     let player = new Player(2, 2, 0);
+    this.fired = false;
+
     let entities = [];
-    for (let i = 0; i < 10; ) {
+    for (let i = 0; i < 30; ) {
       let x = Math.floor(Math.random() * gameOptions.mapWidth);
       let y = Math.floor(Math.random() * gameOptions.mapHeight);
       if (!this.map.CheckColision(x, y)) {
@@ -50,6 +52,13 @@ export default class ASCIIFPS extends React.Component {
       player: player,
       entities: entities,
     };
+  }
+
+  bulletTimeout() {
+    this.fired = false;
+    if (this.bulletTimer != undefined) {
+      clearInterval(this.bulletTimer);
+    }
   }
 
   FrameProcess() {
@@ -106,28 +115,43 @@ export default class ASCIIFPS extends React.Component {
       update = update || newUpdate;
     });
 
-    if (recordedInput.hasOwnProperty("mouse_0")) {
+    if (!this.fired && recordedInput.hasOwnProperty("mouse_0")) {
       entities.push(
         new Bullet(
-          newPlayer.x,
-          newPlayer.y,
+          newPlayer.x + 0.6 * Math.cos(newPlayer.a),
+          newPlayer.y + 0.6 * Math.sin(newPlayer.a),
           newPlayer.a,
           new Sprite(bulletSprite)
         )
       );
+      this.fired = true;
+      this.bulletTimer = setInterval(this.bulletTimeout.bind(this), 500);
       update = true;
     }
 
     entities.map((entity1) => {
       entities.map((entity2) => {
-        if (entity1 !== entity2 && entity1.type !== entity2.type) {
+        if (
+          entity1 !== entity2 &&
+          entity1.type !== entity2.type &&
+          entity1.dead === false &&
+          entity2.dead === false
+        ) {
           if (this.engine.CheckObjColision(entity1, entity2)) {
             entity1.Kill();
             entity2.Kill();
+            if (entity1.type === "enemy" || entity2.type === "enemy") {
+              newPlayer.score += 100;
+            }
             update = true;
           }
         }
       });
+      if (entity1.type === "bullet" && this.engine.CheckObjColision(entity1, this.state.player)) {
+        entity1.Kill();
+        console.log("You died");
+        update = true;
+      }
     });
 
     if (update) {

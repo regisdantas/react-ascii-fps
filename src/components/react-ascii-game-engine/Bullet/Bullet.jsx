@@ -15,8 +15,8 @@ export default class Bullet extends GameObject {
   }
 
   FrameProcess(map) {
-    let newX = this.x + 0.5*Math.cos(this.a);
-    let newY = this.y + 0.5*Math.sin(this.a);
+    let newX = this.x + 1*Math.cos(this.a);
+    let newY = this.y + 1*Math.sin(this.a);
     if (map.CheckColision(Math.floor(newX), Math.floor(newY))) {
       this.dead = true;
       return { entity: this, update: false };

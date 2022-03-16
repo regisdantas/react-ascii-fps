@@ -6,7 +6,7 @@ export const defaultConsts = {
 
   defaultRenderOptions: {
     ceilingChar: "-",
-    wallChar: ["█", "▓", "▒", "░"],
+    wallChar: ["░","▒","▓","█"],
     floorChar: ["@", ";", "."],
   },
 

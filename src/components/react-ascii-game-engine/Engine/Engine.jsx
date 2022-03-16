@@ -40,7 +40,7 @@ export default class Engine {
     document.addEventListener("keyup", this.onKeyUp.bind(this));
 
     setInterval(this.FrameTrigger.bind(this), 1000 / gameOptions.fps);
-    setInterval(this.MeasureFPS.bind(this), 1000 );
+    setInterval(this.MeasureFPS.bind(this), 1000);
 
     document.onmousemove = this.OnMouseMove.bind(this);
     document.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -103,7 +103,7 @@ export default class Engine {
     const vecY = obj1.y - obj2.y;
     const distSquare = vecX * vecX + vecY * vecY;
 
-    if (distSquare < 0.1) {
+    if (distSquare < 0.4) {
       return true;
     }
     return false;
@@ -155,7 +155,6 @@ export default class Engine {
       let rayY = Math.sin(rayAngle);
       let distanceToWall = 0;
       let hitWall = false;
-      let isBoundary = false;
       while (!hitWall && distanceToWall < map.width) {
         distanceToWall += defaultConsts.defaultRayStepSize;
         let testX = Math.round(player.x + rayX * distanceToWall);
@@ -169,35 +168,18 @@ export default class Engine {
           hitWall = true;
         } else if (map.mapBuffer[testY][testX] === map.options.wallChar) {
           hitWall = true;
-          // let corners = [];
-          // for (let tx = 0; tx < 2; tx++) {
-          //   for (let ty = 0; ty < 2; ty++) {
-          //     let cornerX = testX + tx - player.x;
-          //     let cornerY = testY + ty - player.y;
-          //     let cornerDistance = Math.sqrt(
-          //       cornerX * cornerX + cornerY * cornerY
-          //     );
-          //     let dot = (rayX * cornerX + rayY * cornerY) / cornerDistance;
-          //     corners.push({ distance: cornerDistance, dot: dot });
-          //   }
-          // }
-          // corners.sort((a, b) => (a.distance > b.distance ? 1 : -1));
-          // let testAgle = 0.003;
-          // if (Math.acos(corners[0].dot) < testAgle) {
-          //   isBoundary = true;
-          // }
-          // if (Math.acos(corners[1].dot) < testAgle) {
-          //   isBoundary = true;
-          // }
         }
       }
       let ceilingSize =
         this.gameOptions.height / 2 - this.gameOptions.height / distanceToWall;
       let floorSize = this.gameOptions.height - ceilingSize;
 
-      let wallShade = Math.floor(
-        (distanceToWall / (map.width + 1)) *
-          defaultConsts.defaultRenderOptions.wallChar.length
+      let wallShade = Math.min(
+        Math.floor(
+          (distanceToWall / 20) *
+            defaultConsts.defaultRenderOptions.wallChar.length
+        ),
+        defaultConsts.defaultRenderOptions.wallChar.length - 1
       );
 
       this.depthBuffer[x] = distanceToWall;
@@ -206,19 +188,18 @@ export default class Engine {
         if (y < ceilingSize) {
           this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
         } else if (y > ceilingSize && y < floorSize) {
-          if (isBoundary) {
-            this.Draw(x, y, " ");
-          } else {
-            this.Draw(
-              x,
-              y,
-              defaultConsts.defaultRenderOptions.wallChar[wallShade]
-            );
-          }
+          this.Draw(
+            x,
+            y,
+            defaultConsts.defaultRenderOptions.wallChar[wallShade]
+          );
         } else if (y > floorSize) {
-          let floorShade = Math.floor(
-            ((y - floorSize) / (ceilingSize + 1)) *
-              defaultConsts.defaultRenderOptions.floorChar.length
+          let floorShade = Math.min(
+            Math.floor(
+              ((y - floorSize) / ceilingSize) *
+                defaultConsts.defaultRenderOptions.floorChar.length
+            ),
+            defaultConsts.defaultRenderOptions.floorChar.length - 1
           );
 
           this.Draw(
@@ -261,7 +242,7 @@ export default class Engine {
         this.gameOptions.height / 2.0 - this.gameOptions.height / distToPlayer
       );
       let objFloor = this.gameOptions.height - objCeiling;
-      let objHeight = (objFloor - objCeiling)*0.8;
+      let objHeight = (objFloor - objCeiling) * 0.8;
       let objAspectRatio = obj.sprite.height / obj.sprite.width;
       let objWidth = objHeight / objAspectRatio;
       let objMiddle =
@@ -290,13 +271,14 @@ export default class Engine {
   }
 
   render(game, player, entities) {
+    this.score = player.score;
     this.DrawView(player, game.map);
     game.objects.map((obj) => {
       this.DrawObject(obj, player);
     });
     entities.map((entity) => {
       this.DrawObject(entity, player);
-    })
+    });
     this.DrawMap(game.map, player, entities, 2, 2);
 
     return (
@@ -305,7 +287,9 @@ export default class Engine {
         className="game-screen"
         onClick={() => this.PointerLock()}
       >
-        <span style={{fontSize: '16px'}}>{`FPS: ${this.fps}`}</span>
+        <span
+          style={{ fontSize: "16px" }}
+        >{`Score: ${this.score} - FPS: ${this.fps}`}</span>
         <pre>
           {this.screenBuffer.map((line, idx) => {
             return <span>{`${line.join("")}\n`}</span>;
