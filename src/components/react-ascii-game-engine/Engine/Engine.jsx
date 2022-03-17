@@ -1,4 +1,3 @@
-import { withTheme } from "@emotion/react";
 import React from "react";
 import { defaultConsts } from "../Constants";
 import "./Engine.css";
@@ -148,9 +147,9 @@ export default class Engine {
   }
 
   DrawView(player, map) {
-    for (let x = 0; x < this.gameOptions.width; x++) {
+    for (let w = 0; w < this.gameOptions.width; w++) {
       let rayAngle =
-        player.a - this.fOV / 2 + (x * this.fOV) / this.gameOptions.width;
+        player.a - this.fOV / 2 + (w * this.fOV) / this.gameOptions.width;
       let rayX = Math.cos(rayAngle);
       let rayY = Math.sin(rayAngle);
       let distanceToWall = 0;
@@ -170,9 +169,9 @@ export default class Engine {
           hitWall = true;
         }
       }
-      let ceilingSize =
+      let skySize =
         this.gameOptions.height / 2 - this.gameOptions.height / distanceToWall;
-      let floorSize = this.gameOptions.height - ceilingSize;
+      let floorSize = this.gameOptions.height - skySize;
 
       let wallShade = Math.min(
         Math.floor(
@@ -182,29 +181,58 @@ export default class Engine {
         defaultConsts.defaultRenderOptions.wallChar.length - 1
       );
 
-      this.depthBuffer[x] = distanceToWall;
+      this.depthBuffer[w] = distanceToWall;
 
-      for (let y = 0; y < this.gameOptions.height; y++) {
-        if (y < ceilingSize) {
-          this.Draw(x, y, defaultConsts.defaultRenderOptions.ceilingChar);
-        } else if (y > ceilingSize && y < floorSize) {
+      for (let h = 0; h < this.gameOptions.height; h++) {
+        if (h < skySize) {
+          let sunScaledX = this.gameOptions.width/2;
+          let sunScaledY = this.gameOptions.height/2;
+          let sunScaledZ = this.gameOptions.height;
+          let sunW = sunScaledY*Math.sin(player.a) - sunScaledX*Math.cos(player.a) + this.gameOptions.width/2;
+          let sunH = this.gameOptions.height - sunScaledZ;
+
+          let vecW = sunW - w;
+          let vecH = sunH - h;
+
+          let skyA = Math.atan2(vecH, vecW);
+          if (skyA < -Math.PI) {
+            skyA += Math.PI * 2;
+          }
+          if (skyA > Math.PI) {
+            skyA -= Math.PI * 2;
+          }
+
+          skyA = Math.PI + skyA;
+
+          let skyShade = Math.max(
+            Math.min(
+              Math.floor(
+                (skyA / Math.PI) *
+                  defaultConsts.defaultRenderOptions.skyChar.length
+              ),
+              defaultConsts.defaultRenderOptions.skyChar.length - 1
+            ),
+            0
+          );
+          this.Draw(w, h, defaultConsts.defaultRenderOptions.skyChar[skyShade]);
+        } else if (h > skySize && h < floorSize) {
           this.Draw(
-            x,
-            y,
+            w,
+            h,
             defaultConsts.defaultRenderOptions.wallChar[wallShade]
           );
-        } else if (y > floorSize) {
+        } else if (h > floorSize) {
           let floorShade = Math.min(
             Math.floor(
-              ((y - floorSize) / ceilingSize) *
+              ((h - floorSize) / skySize) *
                 defaultConsts.defaultRenderOptions.floorChar.length
             ),
             defaultConsts.defaultRenderOptions.floorChar.length - 1
           );
 
           this.Draw(
-            x,
-            y,
+            w,
+            h,
             defaultConsts.defaultRenderOptions.floorChar[floorShade]
           );
         }
@@ -238,11 +266,11 @@ export default class Engine {
       distToPlayer >= 1 &&
       distToPlayer < this.gameOptions.width
     ) {
-      let objCeiling = Math.floor(
+      let objSky = Math.floor(
         this.gameOptions.height / 2.0 - this.gameOptions.height / distToPlayer
       );
-      let objFloor = this.gameOptions.height - objCeiling;
-      let objHeight = (objFloor - objCeiling) * 0.8;
+      let objFloor = this.gameOptions.height - objSky;
+      let objHeight = (objFloor - objSky) * 0.8;
       let objAspectRatio = obj.sprite.height / obj.sprite.width;
       let objWidth = objHeight / objAspectRatio;
       let objMiddle =
@@ -257,11 +285,11 @@ export default class Engine {
           if (
             objColumn >= 0 &&
             objColumn < this.gameOptions.width &&
-            objCeiling + ly >= 0 &&
-            objCeiling + ly < this.gameOptions.height
+            objSky + ly >= 0 &&
+            objSky + ly < this.gameOptions.height
           ) {
             if (c !== " " && this.depthBuffer[objColumn] >= distToPlayer) {
-              this.Draw(objColumn, objCeiling + ly, c);
+              this.Draw(objColumn, objSky + ly, c);
               this.depthBuffer[objColumn] = distToPlayer;
             }
           }

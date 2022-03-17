@@ -15,6 +15,12 @@ export default class Player extends GameObject {
 
   MovePlayer(game, dFrontBack, dSide, dAngle) {
     let newA = this.a + dAngle * defaultConsts.defaultPlayerSpin;
+    if (newA > 2*Math.PI) {
+      newA -= 2*Math.PI;
+    }
+    if (newA < 0) {
+      newA += 2*Math.PI;
+    }
     let newX =
       this.x +
       defaultConsts.defaultPlayerSpeed *

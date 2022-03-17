@@ -21,8 +21,8 @@ export default class ASCIIFPS extends React.Component {
     super(props);
 
     const gameOptions = {
-      width: Math.floor(window.innerWidth / 5),
-      height: Math.floor(window.innerHeight / 6),
+      width: Math.floor(window.innerWidth / 10),
+      height: Math.floor(window.innerHeight / 14),
       fps: 60,
       mapWidth: testMap[0].length,
       mapHeight: testMap.length,
@@ -35,19 +35,10 @@ export default class ASCIIFPS extends React.Component {
     });
     this.game = new Game(this.engine, this.map, []);
 
-    let player = new Player(2, 2, 0);
+    let player = new Player(this.map.width/2, 6, Math.PI/2);
     this.fired = false;
 
     let entities = [];
-    for (let i = 0; i < 30; ) {
-      let x = Math.floor(Math.random() * gameOptions.mapWidth);
-      let y = Math.floor(Math.random() * gameOptions.mapHeight);
-      if (!this.map.CheckColision(x, y)) {
-        entities.push(new Enemy(x, y, new Sprite(enemySprite)));
-        i++;
-      }
-    }
-
     this.state = {
       player: player,
       entities: entities,
@@ -56,7 +47,7 @@ export default class ASCIIFPS extends React.Component {
 
   bulletTimeout() {
     this.fired = false;
-    if (this.bulletTimer != undefined) {
+    if (this.bulletTimer !== undefined) {
       clearInterval(this.bulletTimer);
     }
   }
@@ -85,7 +76,7 @@ export default class ASCIIFPS extends React.Component {
       dAngle = -1;
     }
     if (recordedInput.hasOwnProperty("ArrowRight")) {
-      dAngle = +1;
+      dAngle = 1;
     }
     let mouseMoves = this.engine.GetMouseMoves();
     if (mouseMoves.dx > 1) {

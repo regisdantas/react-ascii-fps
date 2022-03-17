@@ -10,6 +10,9 @@ export default class Map {
     this.options = { ...defaultConsts.defaultMapOptions };
     this.height = mapBuffer.length;
     this.width = mapBuffer[0].length;
+    this.sunX = 3*this.width;
+    this.sunY = this.height / 2;
+    this.sunZ = 3;
   }
 
   Sample(x, y){
