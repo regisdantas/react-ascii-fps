@@ -7,19 +7,14 @@ export default class Player extends GameObject {
     this.score = 0;
   }
 
-  CopyUpdate(x, y, a) {
-    let newPlayer = new Player(x, y, a);
-    newPlayer.score = this.score;
-    return newPlayer;
-  }
-
   MovePlayer(game, dFrontBack, dSide, dAngle) {
+    let update = false;
     let newA = this.a + dAngle * defaultConsts.defaultPlayerSpin;
-    if (newA > 2*Math.PI) {
-      newA -= 2*Math.PI;
+    if (newA > 2 * Math.PI) {
+      newA -= 2 * Math.PI;
     }
     if (newA < 0) {
-      newA += 2*Math.PI;
+      newA += 2 * Math.PI;
     }
     let newX =
       this.x +
@@ -48,9 +43,12 @@ export default class Player extends GameObject {
         newX = this.x;
       }
     }
-    // this.x = newX;
-    // this.y = newY;
-    // this.a = newA;
-    return this.CopyUpdate(newX, newY, newA);
+    if (this.x !== newX || this.y !== newY || this.a !== newA) {
+      update = true;
+    }
+    this.x = newX;
+    this.y = newY;
+    this.a = newA;
+    return update;
   }
 }

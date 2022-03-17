@@ -34,14 +34,12 @@ export default class ASCIIFPS extends React.Component {
       foorChar: " ",
     });
     this.game = new Game(this.engine, this.map, []);
-
-    let player = new Player(this.map.width/2, 6, Math.PI/2);
+    this.player = new Player(this.map.width / 2, 6, Math.PI / 2);
+    this.entities = [];
     this.fired = false;
 
-    let entities = [];
     this.state = {
-      player: player,
-      entities: entities,
+      update: false,
     };
   }
 
@@ -53,7 +51,6 @@ export default class ASCIIFPS extends React.Component {
   }
 
   FrameProcess() {
-    let newPlayer = this.state.player;
     let update = false;
     let dFrontBack = 0;
     let dSide = 0;
@@ -86,32 +83,24 @@ export default class ASCIIFPS extends React.Component {
     }
 
     if (dFrontBack !== 0 || dSide !== 0 || dAngle !== 0) {
-      newPlayer = this.state.player.MovePlayer(
-        this.game,
-        dFrontBack,
-        dSide,
-        dAngle
-      );
-      update = true;
+      update = this.player.MovePlayer(this.game, dFrontBack, dSide, dAngle);
     }
 
-    let entities = [];
-    this.state.entities.map((entity) => {
-      let { update: newUpdate, entity: newEntity } = entity.FrameProcess(
-        this.map
-      );
-      if (!newEntity.dead) {
-        entities.push(newEntity);
+    this.entities.map((entity) => {
+      update |= entity.FrameProcess(this.map);
+      if (entity.dead === true) {
       }
-      update = update || newUpdate;
+    });
+    this.entities = this.entities.filter((e) => {
+      return e.dead !== true;
     });
 
     if (!this.fired && recordedInput.hasOwnProperty("mouse_0")) {
-      entities.push(
+      this.entities.push(
         new Bullet(
-          newPlayer.x + 0.6 * Math.cos(newPlayer.a),
-          newPlayer.y + 0.6 * Math.sin(newPlayer.a),
-          newPlayer.a,
+          this.player.x + 0.6 * Math.cos(this.player.a),
+          this.player.y + 0.6 * Math.sin(this.player.a),
+          this.player.a,
           new Sprite(bulletSprite)
         )
       );
@@ -120,8 +109,8 @@ export default class ASCIIFPS extends React.Component {
       update = true;
     }
 
-    entities.map((entity1) => {
-      entities.map((entity2) => {
+    this.entities.map((entity1) => {
+      this.entities.map((entity2) => {
         if (
           entity1 !== entity2 &&
           entity1.type !== entity2.type &&
@@ -132,32 +121,27 @@ export default class ASCIIFPS extends React.Component {
             entity1.Kill();
             entity2.Kill();
             if (entity1.type === "enemy" || entity2.type === "enemy") {
-              newPlayer.score += 100;
+              this.player.score += 100;
             }
             update = true;
           }
         }
       });
-      if (entity1.type === "bullet" && this.engine.CheckObjColision(entity1, this.state.player)) {
-        entity1.Kill();
-        console.log("You died");
-        update = true;
-      }
+      // if (
+      //   entity1.type === "bullet" &&
+      //   this.engine.CheckObjColision(entity1, this.player)
+      // ) {
+      //   entity1.Kill();
+      //   update = true;
+      // }
     });
 
     if (update) {
-      let state = { ...this.state };
-      state.player = newPlayer;
-      state.entities = entities;
-      this.setState(state);
+      this.setState({ update: update });
     }
   }
 
   render() {
-    return this.engine.render(
-      this.game,
-      this.state.player,
-      this.state.entities
-    );
+    return this.engine.render(this.game, this.player, this.entities);
   }
 }

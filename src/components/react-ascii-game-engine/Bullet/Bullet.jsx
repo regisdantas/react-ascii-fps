@@ -19,8 +19,10 @@ export default class Bullet extends GameObject {
     let newY = this.y + 1*Math.sin(this.a);
     if (map.CheckColision(Math.floor(newX), Math.floor(newY))) {
       this.dead = true;
-      return { entity: this, update: false };
+      return false;
     }
-    return { entity: new Bullet(newX, newY, this.a, this.sprite), update: true };
+    this.x = newX;
+    this.y = newY;
+    return true;
   }
 }

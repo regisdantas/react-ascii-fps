@@ -11,6 +11,6 @@ export default class GameObject {
   }
 
   FrameProcess(map) {
-    return {entity: this, update: false};
+    return false;
   }
 }

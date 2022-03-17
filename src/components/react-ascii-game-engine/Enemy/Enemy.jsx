@@ -10,13 +10,6 @@ export default class Enemy extends GameObject {
     this.dead = false;
   }
 
-  CopyUpdate(x, y, a) {
-    let newEnemy = new Enemy(x, y, this.sprite);
-    newEnemy.a = a;
-    newEnemy.dead = this.dead;
-    return newEnemy;
-  }
-
   Kill() {
     this.dead = true;
   }
@@ -34,9 +27,11 @@ export default class Enemy extends GameObject {
       if (this.a > 2 * Math.PI) {
         this.a -= 2 * Math.PI;
       }
+    } else {
+      this.x = newX;
+      this.y = newY;
+      this.a = newA;
     }
-    if (!colide)
-      return { entity: this.CopyUpdate(newX, newY, newA), update: true };
-    else return { entity: this, update: false };
+    return !colide;
   }
 }
