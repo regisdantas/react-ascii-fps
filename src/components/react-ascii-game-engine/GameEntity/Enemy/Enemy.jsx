@@ -1,17 +1,13 @@
-import GameObject from "../GameObject/GameObject";
+import GameObject from "../GameEntity";
 
 export default class Enemy extends GameObject {
-  constructor(x, y, sprite) {
+  constructor(x, y, id, sprite) {
     super(x, y);
     this.a = Math.random() * 2 * Math.PI;
+    this.id = id;
     this.sprite = sprite;
     this.type = "enemy";
-
     this.dead = false;
-  }
-
-  Kill() {
-    this.dead = true;
   }
 
   FrameProcess(map) {

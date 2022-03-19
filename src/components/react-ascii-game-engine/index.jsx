@@ -1,13 +1,26 @@
 import Engine from "./Engine/Engine";
-import Game from "./Game/Game";
-import Map from "./Map/Map";
-import GameObject from "./GameObject/GameObject";
+import FirsPersonCamera from "./Camera/FirsPersonCamera/FirsPersonCamera";
+import Canvas from "./Canvas/Canvas";
+import Mission from "./Mission/Mission";
+import Map from "./Mission/Map/Map";
 import Player from "./Player/Player";
-import Enemy from "./Enemy/Enemy";
 import Sprite from "./Sprite/Sprite";
-import Bullet from "./Bullet/Bullet";
+import GameEntity from "./GameEntity/GameEntity";
+import Enemy from "./GameEntity/Enemy/Enemy";
+import Bullet from "./GameEntity/Bullet/Bullet";
 
-export { Engine, Game, Map, Sprite, GameObject, Player, Enemy, Bullet };
+export {
+  Engine,
+  FirsPersonCamera,
+  Canvas,
+  Mission,
+  Map,
+  Sprite,
+  GameEntity,
+  Player,
+  Enemy,
+  Bullet,
+};
 
 // export class Bullet extends GameObject {
 //   constructor(x, y, a) {

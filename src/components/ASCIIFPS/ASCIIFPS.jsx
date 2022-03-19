@@ -1,17 +1,16 @@
 import PropTypes from "prop-types";
 import React from "react";
-import structuredClone from "@ungap/structured-clone";
 import {
   Engine,
+  FirsPersonCamera,
+  Canvas,
   Player,
-  Map,
-  Game,
-  Enemy,
+  Mission,
   Sprite,
   Bullet,
 } from "../react-ascii-game-engine";
-import { testMap } from "./TestMap.js";
-import { enemySprite } from "./resources/enemy";
+
+const testMission = "/examples/test-mission/test-mission.json";
 
 const bulletSprite = [" | ", "-O-", " | "];
 
@@ -19,24 +18,19 @@ export default class ASCIIFPS extends React.Component {
   static propTypes = {};
   constructor(props) {
     super(props);
+    const width = Math.floor(window.innerWidth / 10);
+    const height = Math.floor(window.innerHeight / 14);
+    const fps = 60;
 
-    const gameOptions = {
-      width: Math.floor(window.innerWidth / 10),
-      height: Math.floor(window.innerHeight / 14),
-      fps: 60,
-      mapWidth: testMap[0].length,
-      mapHeight: testMap.length,
-      FrameProcess: this.FrameProcess.bind(this),
-    };
-
-    this.engine = new Engine(gameOptions);
-    this.map = new Map(testMap, {
-      foorChar: " ",
-    });
-    this.game = new Game(this.engine, this.map, []);
-    this.player = new Player(this.map.width / 2, 6, Math.PI / 2);
-    this.entities = [];
+    this.engine = new Engine(fps, this.FrameProcess.bind(this));
+    this.camera = new FirsPersonCamera(width);
+    this.canvas = new Canvas(width, height);
+    this.player = new Player(0, 0, 0);
     this.fired = false;
+
+    this.mission = new Mission();
+    this.mission.LoadMission(testMission);
+    this.mission.setup(this.player);
 
     this.state = {
       update: false,
@@ -82,21 +76,14 @@ export default class ASCIIFPS extends React.Component {
       dAngle = -1;
     }
 
-    if (dFrontBack !== 0 || dSide !== 0 || dAngle !== 0) {
-      update = this.player.MovePlayer(this.game, dFrontBack, dSide, dAngle);
-    }
-
-    this.entities.map((entity) => {
-      update |= entity.FrameProcess(this.map);
-      if (entity.dead === true) {
-      }
-    });
-    this.entities = this.entities.filter((e) => {
-      return e.dead !== true;
+    update = this.mission.Interact(this.engine, this.player, {
+      dFrontBack: dFrontBack,
+      dSide: dSide,
+      dAngle: dAngle,
     });
 
     if (!this.fired && recordedInput.hasOwnProperty("mouse_0")) {
-      this.entities.push(
+      this.mission.entities.push(
         new Bullet(
           this.player.x + 0.6 * Math.cos(this.player.a),
           this.player.y + 0.6 * Math.sin(this.player.a),
@@ -109,39 +96,29 @@ export default class ASCIIFPS extends React.Component {
       update = true;
     }
 
-    this.entities.map((entity1) => {
-      this.entities.map((entity2) => {
-        if (
-          entity1 !== entity2 &&
-          entity1.type !== entity2.type &&
-          entity1.dead === false &&
-          entity2.dead === false
-        ) {
-          if (this.engine.CheckObjColision(entity1, entity2)) {
-            entity1.Kill();
-            entity2.Kill();
-            if (entity1.type === "enemy" || entity2.type === "enemy") {
-              this.player.score += 100;
-            }
-            update = true;
-          }
-        }
-      });
-      // if (
-      //   entity1.type === "bullet" &&
-      //   this.engine.CheckObjColision(entity1, this.player)
-      // ) {
-      //   entity1.Kill();
-      //   update = true;
-      // }
-    });
-
     if (update) {
       this.setState({ update: update });
     }
   }
 
   render() {
-    return this.engine.render(this.game, this.player, this.entities);
+    this.camera.DrawView(this.canvas, this.mission, this.player);
+    this.mission.entities.map((entity) => {
+      this.camera.DrawObject(this.canvas, this.player, entity);
+    });
+    this.mission.Draw(this.canvas, this.player);
+
+    return (
+      <div
+        id="game-screen"
+        className="game-screen"
+        onClick={() => this.engine.PointerLock()}
+      >
+        <span
+          style={{ fontSize: "16px" }}
+        >{`Score: ${this.player.score} - FPS: ${this.engine.fps}`}</span>
+        <pre>{this.canvas.render()}</pre>
+      </div>
+    );
   }
 }
